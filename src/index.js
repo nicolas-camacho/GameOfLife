@@ -1,23 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import styled from 'styled-components'
-
 const Box = styled.div`
   display: inline-block;
-  border: 1px solid black;
-  width: 15px;
-  height: 15px;
+  border: 1px solid gray;
+  border-radius: 50px;
+  width: 20px;
+  height: 20px;
   margin-left: -1px;
   margin-bottom: -1px;
-  background-color: ${props => props.status ? 'green' : 'lightgray' };
+  background-color: ${props => props.status ? '#2af7a9' : '#fcf4d7' };
+
+  &:hover {
+    background-color: blue;
+  }
 `
 
 const Cell = ({ status, cellId, selectCell, row, col }) => {
 
   return(
-    <Box 
+    <Box
       status={status} 
       id={cellId} 
       onClick={() => selectCell(row, col)} 
@@ -49,7 +53,7 @@ const Grid = ({ cols, rows, fullGrid, selectCell }) => {
   }
 
   return(
-    <div className="grid" style={{width: (cols*16) + 1}}>
+    <div className="grid" style={{width: (cols*21) + 1}}>
       {rowsArr}
     </div>
   )
@@ -57,40 +61,45 @@ const Grid = ({ cols, rows, fullGrid, selectCell }) => {
 
 const Main = () => {
 
-  const [generation, setGeneration] = useState(0)
-  const [speed, setSpeed] = useState(100)
-  const [cols, setCols] = useState(50)
-  const [rows, setRows] = useState(30)
+  const [cols] = useState(30)
+  const [rows] = useState(30)
   const [fullGrid, setFullGrid] = useState(Array(rows).fill().map(() => Array(cols).fill(false)))
-  const [intervalId, setIntervalId] = useState(null)
   
   const start = () => {
     let grid = fullGrid;
     let gridClone = [...fullGrid]
 
     for (let i = 0; i < rows; i++) {
-		  for (let j = 0; j < cols; j++) {
-		    let count = 0;
-		    if (i > 0) if (grid[i - 1][j]) count++;
-		    if (i > 0 && j > 0) if (grid[i - 1][j - 1]) count++;
-		    if (i > 0 && j < cols - 1) if (grid[i - 1][j + 1]) count++;
-		    if (j < cols - 1) if (grid[i][j + 1]) count++;
-		    if (j > 0) if (grid[i][j - 1]) count++;
-		    if (i < rows - 1) if (grid[i + 1][j]) count++;
-		    if (i < rows - 1 && j > 0) if (grid[i + 1][j - 1]) count++;
-		    if (i < rows - 1 && j < cols - 1) if (grid[i + 1][j + 1]) count++;
-		    if (grid[i][j] && (count < 2 || count > 3)) gridClone[i][j] = false;
-		    if (!grid[i][j] && count === 3) gridClone[i][j] = true;
-		  }
+      for (let j = 0; j < cols; j++) {
+        let neighbors = 0;
+        operations.forEach(([x, y]) => {
+          const newI = i + x;
+          const newJ = j + y;
+          if (newI >= 0 && newI < rows && newJ >= 0 && newJ < cols) {
+            neighbors += grid[newI][newJ];
+          }
+        });
+
+        if (neighbors < 2 || neighbors > 3) {
+          gridClone[i][j] = 0;
+        } else if (grid[i][j] === 0 && neighbors === 3) {
+          gridClone[i][j] = 1;
+        }
+      }
     }
     setFullGrid(gridClone)
-    setGeneration(generation + 1)
   }
 
-  const startGame = () => {
-    clearInterval(intervalId)
-    setIntervalId(setInterval(start, speed))
-  }
+  const operations = [
+    [0, 1],
+    [0, -1],
+    [1, -1],
+    [-1, 1],
+    [1, 1],
+    [-1, -1],
+    [1, 0],
+    [-1, 0]
+  ];
 
   const selectCell = (row, col) => {
     let gridCopy = [...fullGrid]
@@ -102,7 +111,7 @@ const Main = () => {
     let gridCopy = [...fullGrid]
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
-        if(Math.floor(Math.random() * 8) === 1) {
+        if(Math.floor(Math.random() * 3) === 1) {
           gridCopy[i][j] = true;
         }
       }
@@ -115,9 +124,14 @@ const Main = () => {
     startGame();
   }, [])
 
+  const startGame = useCallback(() => {
+    start();
+    setTimeout(startGame, 50)
+  }, [])
+
   return(
     <div className="center">
-      <h1>The game of life</h1>
+      <h2>The game of life</h2>
       <Grid 
         {...{
           cols,
@@ -126,7 +140,6 @@ const Main = () => {
           selectCell: selectCell
         }}
       />
-      <h2>Generations: {generation}</h2>
     </div>
   );
 }
