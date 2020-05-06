@@ -5,13 +5,9 @@ import * as serviceWorker from './serviceWorker';
 import styled from 'styled-components'
 const Box = styled.div`
   display: inline-block;
-  border: 1px solid gray;
-  border-radius: 50px;
-  width: 20px;
-  height: 20px;
-  margin-left: -1px;
-  margin-bottom: -1px;
-  background-color: ${props => props.status ? '#2af7a9' : '#fcf4d7' };
+  width: 15px;
+  height: 15px;
+  background-color: ${props => props.status ? '#ffffff' : '#000000' };
 
   &:hover {
     background-color: blue;
@@ -32,7 +28,7 @@ const Cell = ({ status, cellId, selectCell, row, col }) => {
 const Grid = ({ cols, rows, fullGrid, selectCell }) => {
 
   let rowsArr = []
-  let cellStatus = false;
+  let cellStatus = 0;
 
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
@@ -53,7 +49,7 @@ const Grid = ({ cols, rows, fullGrid, selectCell }) => {
   }
 
   return(
-    <div className="grid" style={{width: (cols*21) + 1}}>
+    <div className="grid" style={{ width: cols*15 }}>
       {rowsArr}
     </div>
   )
@@ -61,9 +57,16 @@ const Grid = ({ cols, rows, fullGrid, selectCell }) => {
 
 const Main = () => {
 
-  const [cols] = useState(30)
-  const [rows] = useState(30)
-  const [fullGrid, setFullGrid] = useState(Array(rows).fill().map(() => Array(cols).fill(false)))
+  const [cols] = useState(25)
+  const [rows] = useState(25)
+  const [fullGrid, setFullGrid] = useState(() => {
+    const cells = [];
+    for (let i = 0; i < rows; i++) {
+      cells.push(Array.from(Array(cols), () => 0))
+    }
+
+    return cells;
+  })
   
   const start = () => {
     let grid = fullGrid;
@@ -111,8 +114,8 @@ const Main = () => {
     let gridCopy = [...fullGrid]
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
-        if(Math.floor(Math.random() * 3) === 1) {
-          gridCopy[i][j] = true;
+        if(Math.floor(Math.random() * 4) === 1) {
+          gridCopy[i][j] = 1;
         }
       }
     }
@@ -131,7 +134,7 @@ const Main = () => {
 
   return(
     <div className="center">
-      <h2>The game of life</h2>
+      <h1>The game of life</h1>
       <Grid 
         {...{
           cols,
